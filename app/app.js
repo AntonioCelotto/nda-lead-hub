@@ -20,8 +20,11 @@ const state = {
 let refreshTimer = null;
 
 const els = {
+  authGate: document.getElementById("authGate"),
+  appShell: document.getElementById("appShell"),
   loginForm: document.getElementById("loginForm"),
   emailInput: document.getElementById("emailInput"),
+  authInfo: document.getElementById("authInfo"),
   sessionBox: document.getElementById("sessionBox"),
   profileBadge: document.getElementById("profileBadge"),
   logoutButton: document.getElementById("logoutButton"),
@@ -275,12 +278,19 @@ function renderLeadDetail() {
 
 function renderSession() {
   const active = Boolean(state.session);
-  els.loginForm.classList.toggle("hidden", active);
+  document.body.classList.toggle("auth-locked", !active);
+  els.authGate.classList.toggle("hidden", active);
+  els.appShell.classList.toggle("hidden", !active);
   els.sessionBox.classList.toggle("hidden", !active);
+  els.refreshButton.disabled = !active;
   if (active) {
     const displayName =
       state.profile?.full_name || state.session.user?.email || "Operatore";
     els.profileBadge.textContent = `Sessione attiva: ${displayName}`;
+    els.authInfo.textContent = "";
+  } else {
+    els.authInfo.textContent =
+      "Accedi con una email operatore già autorizzata. La dashboard resta bloccata finché non esiste una sessione valida.";
   }
 }
 
@@ -416,12 +426,21 @@ async function handleLogin(event) {
   const redirectTo = window.location.href;
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: redirectTo },
+    options: {
+      emailRedirectTo: redirectTo,
+      shouldCreateUser: false,
+    },
   });
   if (error) {
-    showToast(error.message);
+    els.authInfo.textContent =
+      error.message === "Signups not allowed for otp"
+        ? "Questa email non e autorizzata. Prima va creata come operatore in Supabase Auth."
+        : error.message;
+    showToast("Accesso non completato");
     return;
   }
+  els.authInfo.textContent =
+    "Controlla la mail e apri il link ricevuto nella stessa finestra del browser per completare la sessione.";
   showToast("Link di accesso inviato via email");
   els.emailInput.value = "";
 }
