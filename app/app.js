@@ -14,7 +14,10 @@ const state = {
   messages: [],
   notes: [],
   selectedLeadId: null,
+  refreshInFlight: false,
 };
+
+let refreshTimer = null;
 
 const els = {
   loginForm: document.getElementById("loginForm"),
@@ -368,11 +371,28 @@ async function loadNotes() {
   state.notes = data || [];
 }
 
-async function refreshData() {
+function stopAutoRefresh() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  if (!state.session) return;
+  refreshTimer = setInterval(() => {
+    refreshData({ silent: true });
+  }, 15000);
+}
+
+async function refreshData({ silent = false } = {}) {
   if (!state.session) {
     renderAll();
     return;
   }
+  if (state.refreshInFlight) return;
+  state.refreshInFlight = true;
   try {
     await loadProfile();
     await loadProfiles();
@@ -381,7 +401,11 @@ async function refreshData() {
     renderAll();
   } catch (error) {
     console.error(error);
-    showToast("Errore nel caricamento dati");
+    if (!silent) {
+      showToast("Errore nel caricamento dati");
+    }
+  } finally {
+    state.refreshInFlight = false;
   }
 }
 
@@ -414,6 +438,7 @@ async function handleLogout() {
   state.messages = [];
   state.notes = [];
   state.selectedLeadId = null;
+  stopAutoRefresh();
   renderAll();
 }
 
@@ -512,6 +537,7 @@ async function initSession() {
   renderAll();
   if (session) {
     await refreshData();
+    startAutoRefresh();
   }
 }
 
@@ -528,15 +554,22 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
   state.session = session;
   if (session) {
     await refreshData();
+    startAutoRefresh();
   } else {
     state.profile = null;
     state.leads = [];
     state.messages = [];
     state.notes = [];
     state.selectedLeadId = null;
+    stopAutoRefresh();
     renderAll();
   }
 });
 
-initSession();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && state.session) {
+    refreshData({ silent: true });
+  }
+});
 
+initSession();
