@@ -15,6 +15,7 @@ const state = {
   notes: [],
   selectedLeadId: null,
   refreshInFlight: false,
+  isRecoveryMode: false,
 };
 
 let refreshTimer = null;
@@ -23,7 +24,12 @@ const els = {
   authGate: document.getElementById("authGate"),
   appShell: document.getElementById("appShell"),
   loginForm: document.getElementById("loginForm"),
+  passwordRecoveryForm: document.getElementById("passwordRecoveryForm"),
+  passwordUpdateForm: document.getElementById("passwordUpdateForm"),
   emailInput: document.getElementById("emailInput"),
+  passwordInput: document.getElementById("passwordInput"),
+  newPasswordInput: document.getElementById("newPasswordInput"),
+  confirmPasswordInput: document.getElementById("confirmPasswordInput"),
   authInfo: document.getElementById("authInfo"),
   sessionBox: document.getElementById("sessionBox"),
   profileBadge: document.getElementById("profileBadge"),
@@ -279,18 +285,23 @@ function renderLeadDetail() {
 function renderSession() {
   const active = Boolean(state.session);
   document.body.classList.toggle("auth-locked", !active);
-  els.authGate.classList.toggle("hidden", active);
-  els.appShell.classList.toggle("hidden", !active);
-  els.sessionBox.classList.toggle("hidden", !active);
-  els.refreshButton.disabled = !active;
+  els.authGate.classList.toggle("hidden", active && !state.isRecoveryMode);
+  els.appShell.classList.toggle("hidden", !active || state.isRecoveryMode);
+  els.sessionBox.classList.toggle("hidden", !active || state.isRecoveryMode);
+  els.refreshButton.disabled = !active || state.isRecoveryMode;
+  els.loginForm.classList.toggle("hidden", state.isRecoveryMode);
+  els.passwordRecoveryForm.classList.toggle("hidden", state.isRecoveryMode);
+  els.passwordUpdateForm.classList.toggle("hidden", !state.isRecoveryMode);
   if (active) {
     const displayName =
       state.profile?.full_name || state.session.user?.email || "Operatore";
     els.profileBadge.textContent = `Sessione attiva: ${displayName}`;
-    els.authInfo.textContent = "";
+    if (!state.isRecoveryMode) {
+      els.authInfo.textContent = "";
+    }
   } else {
     els.authInfo.textContent =
-      "Accedi con una email operatore già autorizzata. La dashboard resta bloccata finché non esiste una sessione valida.";
+      "Accedi con una email operatore già autorizzata. Se non hai ancora la password, richiedi il link di configurazione una sola volta.";
   }
 }
 
@@ -422,27 +433,78 @@ async function refreshData({ silent = false } = {}) {
 async function handleLogin(event) {
   event.preventDefault();
   const email = els.emailInput.value.trim();
-  if (!email) return;
-  const redirectTo = window.location.href;
-  const { error } = await supabase.auth.signInWithOtp({
+  const password = els.passwordInput.value;
+  if (!email || !password) return;
+  const { error } = await supabase.auth.signInWithPassword({
     email,
-    options: {
-      emailRedirectTo: redirectTo,
-      shouldCreateUser: false,
-    },
+    password,
   });
   if (error) {
     els.authInfo.textContent =
-      error.message === "Signups not allowed for otp"
-        ? "Questa email non e autorizzata. Prima va creata come operatore in Supabase Auth."
+      error.message === "Invalid login credentials"
+        ? "Email o password non corretti. Se e il primo accesso, usa il pulsante per impostare la password."
         : error.message;
     showToast("Accesso non completato");
     return;
   }
+  state.isRecoveryMode = false;
+  els.passwordInput.value = "";
+  showToast("Accesso completato");
+}
+
+async function handlePasswordRecovery(event) {
+  event.preventDefault();
+  const email = els.emailInput.value.trim();
+  if (!email) {
+    els.authInfo.textContent = "Inserisci prima l'email operatore per ricevere il link di configurazione password.";
+    showToast("Email richiesta");
+    return;
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href,
+  });
+
+  if (error) {
+    els.authInfo.textContent = error.message;
+    showToast("Invio non completato");
+    return;
+  }
+
   els.authInfo.textContent =
-    "Controlla la mail e apri il link ricevuto nella stessa finestra del browser per completare la sessione.";
-  showToast("Link di accesso inviato via email");
-  els.emailInput.value = "";
+    "Controlla la mail e apri il link ricevuto nello stesso browser. Quando torni qui potrai salvare la nuova password.";
+  showToast("Email per password inviata");
+}
+
+async function handlePasswordUpdate(event) {
+  event.preventDefault();
+  const password = els.newPasswordInput.value;
+  const confirmPassword = els.confirmPasswordInput.value;
+  if (password.length < 8) {
+    els.authInfo.textContent = "La password deve avere almeno 8 caratteri.";
+    showToast("Password troppo corta");
+    return;
+  }
+  if (password !== confirmPassword) {
+    els.authInfo.textContent = "Le due password non coincidono.";
+    showToast("Controlla la conferma");
+    return;
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    els.authInfo.textContent = error.message;
+    showToast("Salvataggio non completato");
+    return;
+  }
+
+  state.isRecoveryMode = false;
+  els.newPasswordInput.value = "";
+  els.confirmPasswordInput.value = "";
+  els.passwordInput.value = "";
+  els.authInfo.textContent = "Password salvata. Ora puoi entrare direttamente con email e password.";
+  renderAll();
+  showToast("Password aggiornata");
 }
 
 async function handleLogout() {
@@ -457,6 +519,7 @@ async function handleLogout() {
   state.messages = [];
   state.notes = [];
   state.selectedLeadId = null;
+  state.isRecoveryMode = false;
   stopAutoRefresh();
   renderAll();
 }
@@ -549,6 +612,9 @@ async function handleNoteSave(event) {
 }
 
 async function initSession() {
+  state.isRecoveryMode =
+    window.location.hash.includes("type=recovery") ||
+    window.location.search.includes("type=recovery");
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -561,6 +627,8 @@ async function initSession() {
 }
 
 els.loginForm.addEventListener("submit", handleLogin);
+els.passwordRecoveryForm.addEventListener("submit", handlePasswordRecovery);
+els.passwordUpdateForm.addEventListener("submit", handlePasswordUpdate);
 els.logoutButton.addEventListener("click", handleLogout);
 els.refreshButton.addEventListener("click", refreshData);
 els.searchInput.addEventListener("input", renderLeadList);
@@ -569,9 +637,18 @@ els.leadForm.addEventListener("submit", handleLeadSave);
 els.messageForm.addEventListener("submit", handleMessageSave);
 els.noteForm.addEventListener("submit", handleNoteSave);
 
-supabase.auth.onAuthStateChange(async (_event, session) => {
+supabase.auth.onAuthStateChange(async (event, session) => {
   state.session = session;
+  if (event === "PASSWORD_RECOVERY") {
+    state.isRecoveryMode = true;
+    els.authInfo.textContent = "Imposta ora la nuova password per completare l'accesso.";
+    renderAll();
+    return;
+  }
   if (session) {
+    if (!state.isRecoveryMode) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     await refreshData();
     startAutoRefresh();
   } else {
@@ -580,6 +657,7 @@ supabase.auth.onAuthStateChange(async (_event, session) => {
     state.messages = [];
     state.notes = [];
     state.selectedLeadId = null;
+    state.isRecoveryMode = false;
     stopAutoRefresh();
     renderAll();
   }
