@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NDA Lead Hub</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand-mark">NDA</div>
+      <div>
+        <p class="eyebrow">CRM commerciale</p>
+        <h1>NDA Lead Hub</h1>
+        <p class="muted">Lead, note, messaggi e appuntamenti in un unico posto.</p>
+      </div>
+
+      <div class="side-block">
+        <div class="metric-line">
+          <span>Lead totali</span>
+          <strong id="metricTotal">0</strong>
+        </div>
+        <div class="metric-line">
+          <span>Da gestire</span>
+          <strong id="metricOpen">0</strong>
+        </div>
+        <div class="metric-line">
+          <span>Appuntamenti</span>
+          <strong id="metricBooked">0</strong>
+        </div>
+      </div>
+
+      <div class="side-block">
+        <h2>Accesso operatori</h2>
+        <form id="loginForm" class="stack">
+          <label class="field">
+            <span>Email operatore</span>
+            <input id="emailInput" type="email" placeholder="nome@azienda.it" required />
+          </label>
+          <button class="btn btn-primary" type="submit">Invia link di accesso</button>
+        </form>
+        <div id="sessionBox" class="stack hidden">
+          <div class="badge" id="profileBadge">Sessione attiva</div>
+          <button id="logoutButton" class="btn btn-secondary" type="button">Esci</button>
+        </div>
+        <p class="muted small">Usa l’accesso via email OTP di Supabase per entrare in dashboard.</p>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Dashboard operativa</p>
+          <h2>Centralizza raccolta lead, risposta commerciale e presa appuntamento</h2>
+        </div>
+        <div class="hero-actions">
+          <button id="refreshButton" class="btn btn-secondary" type="button">Aggiorna</button>
+          <a class="btn btn-secondary" href="./intake.html" target="_blank" rel="noreferrer">Apri form pubblico</a>
+        </div>
+      </section>
+
+      <section class="toolbar">
+        <label class="field grow">
+          <span>Cerca lead</span>
+          <input id="searchInput" type="search" placeholder="Nome, telefono, email o canale" />
+        </label>
+        <label class="field">
+          <span>Filtro stato</span>
+          <select id="statusFilter">
+            <option value="all">Tutti</option>
+            <option value="new">Nuovo</option>
+            <option value="contacted">Contattato</option>
+            <option value="booked">Appuntamento fissato</option>
+            <option value="recall">Da ricontattare</option>
+            <option value="closed_lost">Chiuso negativo</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="board">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Lead in coda</h3>
+            <span id="leadCountLabel" class="muted small">0 risultati</span>
+          </div>
+          <div id="leadList" class="lead-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3 id="leadTitle">Seleziona un lead</h3>
+              <p id="leadMeta" class="muted small">Nessun lead selezionato</p>
+            </div>
+            <span id="leadStatusBadge" class="status-pill">In attesa</span>
+          </div>
+
+          <div class="conversation" id="messageList"></div>
+
+          <form id="messageForm" class="composer">
+            <label class="field grow">
+              <span>Nuovo messaggio interno o inviato</span>
+              <textarea id="messageInput" placeholder="Scrivi il testo della risposta o una nota di sistema"></textarea>
+            </label>
+            <button class="btn btn-primary" type="submit">Registra messaggio</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Dettaglio lead</h3>
+            <span class="muted small">Scheda operativa</span>
+          </div>
+
+          <form id="leadForm" class="stack">
+            <div class="grid two">
+              <label class="field">
+                <span>Nome completo</span>
+                <input id="fullNameInput" type="text" />
+              </label>
+              <label class="field">
+                <span>Telefono</span>
+                <input id="phoneInput" type="text" />
+              </label>
+              <label class="field">
+                <span>Email</span>
+                <input id="leadEmailInput" type="email" />
+              </label>
+              <label class="field">
+                <span>Canale</span>
+                <input id="channelInput" type="text" />
+              </label>
+              <label class="field">
+                <span>Stato</span>
+                <select id="leadStatusInput">
+                  <option value="new">Nuovo</option>
+                  <option value="contacted">Contattato</option>
+                  <option value="booked">Appuntamento fissato</option>
+                  <option value="recall">Da ricontattare</option>
+                  <option value="closed_lost">Chiuso negativo</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Priorità</span>
+                <select id="priorityInput">
+                  <option value="low">Bassa</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid two">
+              <label class="field">
+                <span>Data evento</span>
+                <input id="eventDateInput" type="date" />
+              </label>
+              <label class="field">
+                <span>Tipologia evento</span>
+                <input id="eventTypeInput" type="text" placeholder="Matrimonio, compleanno..." />
+              </label>
+              <label class="field">
+                <span>Servizio</span>
+                <select id="serviceTypeInput">
+                  <option value="">Seleziona</option>
+                  <option value="pranzo">Pranzo</option>
+                  <option value="cena">Cena</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Numero ospiti</span>
+                <input id="guestCountInput" type="number" min="1" />
+              </label>
+              <label class="field">
+                <span>Appuntamento</span>
+                <input id="appointmentAtInput" type="datetime-local" />
+              </label>
+              <label class="field">
+                <span>Operatore assegnato</span>
+                <select id="assignedToInput"></select>
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Note appuntamento</span>
+              <textarea id="appointmentNotesInput" placeholder="Dettagli utili per il prossimo contatto"></textarea>
+            </label>
+
+            <button class="btn btn-primary" type="submit">Salva scheda lead</button>
+          </form>
+
+          <div class="stack top-gap">
+            <div class="panel-subhead">
+              <h4>Note interne</h4>
+            </div>
+            <form id="noteForm" class="stack">
+              <label class="field">
+                <span>Aggiungi nota</span>
+                <textarea id="noteInput" placeholder="Scrivi un promemoria operativo"></textarea>
+              </label>
+              <button class="btn btn-secondary" type="submit">Salva nota</button>
+            </form>
+            <div id="noteList" class="note-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
+

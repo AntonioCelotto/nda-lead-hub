@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NDA Lead Intake</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="public-page">
+  <main class="public-shell">
+    <section class="public-card">
+      <p class="eyebrow">Lead intake</p>
+      <h1>Richiedi informazioni o un appuntamento</h1>
+      <p class="muted">Il form salva il lead direttamente su Supabase e lo rende disponibile nella dashboard operatori.</p>
+
+      <form id="intakeForm" class="stack">
+        <div class="grid two">
+          <label class="field">
+            <span>Nome e cognome</span>
+            <input id="publicName" type="text" required />
+          </label>
+          <label class="field">
+            <span>Telefono</span>
+            <input id="publicPhone" type="text" required />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input id="publicEmail" type="email" />
+          </label>
+          <label class="field">
+            <span>Canale origine</span>
+            <select id="publicChannel">
+              <option value="Website Form">Website Form</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook Lead">Facebook Lead</option>
+              <option value="Matrimonio.com">Matrimonio.com</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Data evento</span>
+            <input id="publicEventDate" type="date" />
+          </label>
+          <label class="field">
+            <span>Tipologia evento</span>
+            <input id="publicEventType" type="text" placeholder="Matrimonio, aziendale..." />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Messaggio</span>
+          <textarea id="publicMessage" required placeholder="Raccontaci brevemente cosa stai cercando"></textarea>
+        </label>
+
+        <button class="btn btn-primary" type="submit">Invia richiesta</button>
+      </form>
+
+      <p class="muted small">Per ambienti pubblici reali conviene aggiungere CAPTCHA e tracking della fonte.</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="./intake.js"></script>
+</body>
+</html>
+
