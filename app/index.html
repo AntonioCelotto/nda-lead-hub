@@ -22,11 +22,39 @@
             <span>Email operatore autorizzata</span>
             <input id="emailInput" type="email" placeholder="nome@azienda.it" required />
           </label>
-          <button class="btn btn-primary" type="submit">Invia link di accesso</button>
+          <label class="field">
+            <span>Password</span>
+            <input id="passwordInput" type="password" placeholder="Inserisci la password" required />
+          </label>
+          <button class="btn btn-primary" type="submit">Accedi</button>
+        </form>
+
+        <form id="passwordRecoveryForm" class="stack">
+          <div>
+            <p class="small">Primo accesso o password dimenticata</p>
+            <p class="muted small">Invia una sola email per impostare o reimpostare la password del tuo account operatore.</p>
+          </div>
+          <button id="sendResetButton" class="btn btn-secondary" type="submit">Invia email per password</button>
+        </form>
+
+        <form id="passwordUpdateForm" class="stack hidden">
+          <div>
+            <p class="small">Nuova password</p>
+            <p class="muted small">Se sei arrivato da una mail di recupero, imposta qui la nuova password.</p>
+          </div>
+          <label class="field">
+            <span>Nuova password</span>
+            <input id="newPasswordInput" type="password" placeholder="Almeno 8 caratteri" />
+          </label>
+          <label class="field">
+            <span>Conferma password</span>
+            <input id="confirmPasswordInput" type="password" placeholder="Ripeti la password" />
+          </label>
+          <button class="btn btn-primary" type="submit">Salva nuova password</button>
         </form>
 
         <div id="authInfo" class="auth-info muted small">
-          Se il tuo account non esiste già, il sistema non crea nuovi utenti automaticamente.
+          Accedi con email e password. Se non hai ancora una password, usa il pulsante per ricevere il link di configurazione.
         </div>
       </div>
     </div>
