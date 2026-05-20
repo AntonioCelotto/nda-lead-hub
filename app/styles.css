@@ -68,6 +68,10 @@ a {
   border: 1px solid var(--line);
 }
 
+#sendResetButton {
+  width: 100%;
+}
+
 .sidebar {
   padding: 28px;
   border-right: 1px solid var(--line);
