@@ -7,7 +7,32 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="shell">
+  <section id="authGate" class="auth-gate">
+    <div class="auth-card">
+      <div class="brand-mark">NDA</div>
+      <div class="stack">
+        <div>
+          <p class="eyebrow">Area riservata operatori</p>
+          <h1>Accedi alla dashboard</h1>
+          <p class="muted">Questa area mostra lead e attività commerciali solo agli operatori autorizzati.</p>
+        </div>
+
+        <form id="loginForm" class="stack">
+          <label class="field">
+            <span>Email operatore autorizzata</span>
+            <input id="emailInput" type="email" placeholder="nome@azienda.it" required />
+          </label>
+          <button class="btn btn-primary" type="submit">Invia link di accesso</button>
+        </form>
+
+        <div id="authInfo" class="auth-info muted small">
+          Se il tuo account non esiste già, il sistema non crea nuovi utenti automaticamente.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="appShell" class="shell hidden">
     <aside class="sidebar">
       <div class="brand-mark">NDA</div>
       <div>
@@ -33,18 +58,11 @@
 
       <div class="side-block">
         <h2>Accesso operatori</h2>
-        <form id="loginForm" class="stack">
-          <label class="field">
-            <span>Email operatore</span>
-            <input id="emailInput" type="email" placeholder="nome@azienda.it" required />
-          </label>
-          <button class="btn btn-primary" type="submit">Invia link di accesso</button>
-        </form>
         <div id="sessionBox" class="stack hidden">
           <div class="badge" id="profileBadge">Sessione attiva</div>
           <button id="logoutButton" class="btn btn-secondary" type="button">Esci</button>
         </div>
-        <p class="muted small">Usa l’accesso via email OTP di Supabase per entrare in dashboard.</p>
+        <p class="muted small">Accesso consentito solo a operatori già abilitati in Supabase Auth.</p>
       </div>
     </aside>
 
@@ -213,4 +231,3 @@
   <script type="module" src="./app.js"></script>
 </body>
 </html>
-
